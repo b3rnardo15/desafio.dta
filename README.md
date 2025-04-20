@@ -1,6 +1,6 @@
 # 📊 Análise Estatística para Data Science
 
-Este repositório contém implementações práticas de conceitos estatísticos fundamentais para Data Science, incluindo a resolução do **Desafio Obrigatório** proposto na disciplina de Estatística para Data Science (Curso ADS – 60h), ministrada pelo Prof. Dr. Welton Dionísio.
+Este repositório contém implementações práticas de conceitos estatísticos fundamentais para Data Science, incluindo a resolução do **Desafio Obrigatório** proposto na disciplina de Estatística para Data Science , ministrada pelo Prof. Dr. Welton Dionísio.
 
 ---
 
