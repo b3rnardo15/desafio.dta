@@ -1,87 +1,111 @@
-import pandas as pd
 import numpy as np
-import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from scipy.stats import pearsonr, f_oneway
+import pandas as pd
 
+# Configuração do estilo dos gráficos
+sns.set_style("whitegrid")
+plt.style.use('ggplot')
 
-def criar_dados_excel(nome_arquivo):
-    # Cria um DataFrame com os dados de exemplo
-    # e salva em um arquivo Excel
-    data = {
-        "Região": ["Norte", "Norte", "Sul", "Sul", "Norte"],
-        "Mês": ["Jan", "Fev", "Jan", "Fev", "Mar"],
-        "Vendas": [1500, np.nan, 2200, 1800, 2000],
-        "Despesas": [300, 250, np.nan, 400, 350]
-    }
+# 1. Medidas de Tendência Central com gráfico - CORREÇÃO AQUI
+dados = [5, 7, 8, 8, 10]
+media = np.mean(dados)
+mediana = np.median(dados)
+moda_result = stats.mode(dados)
+moda = float(moda_result.mode)  # Convertendo para float simples
 
-    df = pd.DataFrame(data)
-    df.to_excel(nome_arquivo, index=False, engine="openpyxl")
-    print(f"\nArquivo '{nome_arquivo}' criado com sucesso.")
+print(f"Média: {media}, Mediana: {mediana}, Moda: {moda}")
 
+# Gráfico de pontos com as medidas
+plt.figure(figsize=(10, 5))
+sns.stripplot(x=dados, jitter=0.05, size=10)
+plt.axhline(media, color='r', linestyle='--', label=f'Média: {media:.1f}')
+plt.axhline(mediana, color='g', linestyle='-.', label=f'Mediana: {mediana:.1f}')
+plt.axhline(moda, color='b', linestyle=':', label=f'Moda: {moda:.0f}')
+plt.title('Medidas de Tendência Central')
+plt.legend()
+plt.savefig('medidas_tendencia_central.png', dpi=600, bbox_inches='tight')
+plt.show()
 
-def carregar_dados(nome_arquivo):
-    # Lê os dados do arquivo Excel e exibe suas informações básicas
-    df = pd.read_excel(nome_arquivo)
-    print("\nDados carregados do arquivo:")
-    print(df)
-    print("\nInformações do DataFrame:")
-    print(df.info())
-    return df
+# 2. Medidas de Dispersão com gráfico
+amplitude = np.ptp(dados)
+variancia = np.var(dados, ddof=1)
+desvio_padrao = np.std(dados, ddof=1)
+q1 = np.percentile(dados, 25)
+q3 = np.percentile(dados, 75)
+iqr = q3 - q1
 
+print(f"Amplitude: {amplitude}, Variância: {variancia}, Desvio: {desvio_padrao}, IQR: {iqr}")
 
-def tratar_dados(df):
-    # Substitui valores ausentes em 'Vendas' com a mediana da coluna
-    median_vendas = df["Vendas"].median()
-    df["Vendas"] = df["Vendas"].fillna(median_vendas)
+# Boxplot mostrando as medidas de dispersão
+plt.figure(figsize=(8, 6))
+sns.boxplot(x=dados, width=0.3)
+plt.title('Boxplot - Medidas de Dispersão')
+plt.savefig('medidas_dispersao.png', dpi=600, bbox_inches='tight')
+plt.show()
 
-    # Substitui valores ausentes em 'Despesas' com a média da coluna
-    mean_despesas = df["Despesas"].mean()
-    df["Despesas"] = df["Despesas"].fillna(mean_despesas)
+# 3. Teste de Normalidade com gráfico Q-Q
+stat, p = stats.shapiro(dados)
+print(f"Estatística W: {stat}, p-valor: {p}")
 
-    print("\nDados após substituição de valores ausentes:")
-    print(df)
-    return df
+# Gráfico Q-Q para normalidade
+plt.figure(figsize=(8, 6))
+stats.probplot(dados, plot=plt)
+plt.title('Gráfico Q-Q - Teste de Normalidade')
+plt.savefig('qqplot_normalidade.png', dpi=600, bbox_inches='tight')
+plt.show()
 
+# 4. Teste t com gráfico comparativo
+grupoA = [3, 5, 7]
+grupoB = [4, 6, 8]
+t_stat, p_valor = stats.ttest_ind(grupoA, grupoB)
+print(f"t = {t_stat}, p = {p_valor}")
 
-def gerar_agrupamentos(df):
-    # Agrupa os dados por Região e Mês, calculando a soma das vendas
-    soma_vendas = df.groupby(["Região", "Mês"])["Vendas"].sum()
-    print("\nSoma total de vendas por região e mês:")
-    print(soma_vendas)
+# Gráfico de barras com intervalos de confiança
+df_grupos = pd.DataFrame({
+    'Grupo': ['A'] * len(grupoA) + ['B'] * len(grupoB),
+    'Valores': grupoA + grupoB
+})
 
-    # Calcula a média das despesas por Região e Mês
-    media_despesas = df.groupby(["Região", "Mês"])["Despesas"].mean()
-    print("\nMédia de despesas por região e mês:")
-    print(media_despesas)
+plt.figure(figsize=(8, 6))
+sns.barplot(x='Grupo', y='Valores', data=df_grupos, errorbar=('ci', 95))
+plt.title('Comparação entre Grupos (Teste t)')
+plt.savefig('comparacao_grupos_t.png', dpi=600, bbox_inches='tight')
+plt.show()
 
+# 5. Correlação de Pearson com gráfico de dispersão
+x = [1, 2, 3]
+y = [2, 4, 6]
+r, p = pearsonr(x, y)
+print(f"Pearson r: {r}, valor-p:{p:.4f}")
 
-def combinar_colunas(df):
-    # Cria um novo DataFrame com apenas as colunas Vendas e Despesas
-    df_combinado = pd.concat([df["Vendas"], df["Despesas"]], axis=1)
-    print("\nDataFrame com colunas Vendas e Despesas combinadas:")
-    print(df_combinado)
+# Gráfico de dispersão com linha de regressão
+plt.figure(figsize=(8, 6))
+sns.regplot(x=x, y=y)
+plt.title(f'Correlação de Pearson (r = {r:.2f})')
+plt.savefig('correlacao_pearson.png', dpi=600, bbox_inches='tight')
+plt.show()
 
+# 6. ANOVA com gráfico
+grupo1 = [3, 5, 7]
+grupo2 = [4, 6, 8]
+grupo3 = [2, 4, 6]
+f_stat, p_valor = f_oneway(grupo1, grupo2, grupo3)
+print(f"F = {f_stat}, p = {p_valor}")
 
-def gerar_sumario(df):
-    # Exibe estatísticas descritivas para as colunas numéricas
-    print("\nSumário estatístico para colunas numéricas:")
-    print(df.describe())
+# Gráfico de caixas para ANOVA
+df_anova = pd.DataFrame({
+    'Valores': grupo1 + grupo2 + grupo3,
+    'Grupo': ['Grupo1']*3 + ['Grupo2']*3 + ['Grupo3']*3
+})
 
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='Grupo', y='Valores', data=df_anova)
+sns.swarmplot(x='Grupo', y='Valores', data=df_anova, color='black', alpha=0.5)
+plt.title('Comparação Múltipla (ANOVA)')
+plt.savefig('anova_grupos.png', dpi=600, bbox_inches='tight')
+plt.show()
 
-def main():
-    # Função principal: executa todas as etapas do processamento
-    nome_arquivo = input("Digite o nome do arquivo Excel (ex: vendas.xlsx): ").strip()
-    
-    criar_dados_excel(nome_arquivo)
-    
-    df = carregar_dados(nome_arquivo)
-    df = tratar_dados(df)
-    
-    gerar_agrupamentos(df)
-    combinar_colunas(df)
-    gerar_sumario(df)
-
-
-if __name__ == "__main__":
-    main()
-
-
+print("Análise concluída com sucesso! Todos os gráficos foram salvos.")
